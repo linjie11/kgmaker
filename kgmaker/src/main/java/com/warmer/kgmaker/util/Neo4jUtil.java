@@ -1,11 +1,13 @@
 package com.warmer.kgmaker.util;
 
 import com.alibaba.fastjson.JSON;
-import org.neo4j.driver.v1.*;
-import org.neo4j.driver.v1.types.Node;
-import org.neo4j.driver.v1.types.Path;
-import org.neo4j.driver.v1.types.Relationship;
-import org.neo4j.driver.v1.util.Pair;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.*;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Relationship;
+import org.neo4j.driver.util.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -28,8 +30,8 @@ public class Neo4jUtil {
 		return false;
 	}
 
-	public StatementResult excuteCypherSql(String cypherSql) {
-		StatementResult result = null;
+	public Result excuteCypherSql(String cypherSql) {
+		Result result = null;
 		try (Session session = neo4jDriver.session()) {
 			System.out.println(cypherSql);
 			result = session.run(cypherSql);
@@ -44,7 +46,7 @@ public class Neo4jUtil {
 	public HashMap<String, Object> GetEntityMap(String cypherSql) {
 		HashMap<String, Object> rss = new HashMap<String, Object>();
 		try {
-			StatementResult result = excuteCypherSql(cypherSql);
+			Result result = excuteCypherSql(cypherSql);
 			if (result.hasNext()) {
 				List<Record> records = result.list();
 				for (Record recordItem : records) {
@@ -77,7 +79,7 @@ public class Neo4jUtil {
 	public List<HashMap<String, Object>> GetGraphNode(String cypherSql) {
 		List<HashMap<String, Object>> ents = new ArrayList<HashMap<String, Object>>();
 		try {
-			StatementResult result = excuteCypherSql(cypherSql);
+			Result result = excuteCypherSql(cypherSql);
 			if (result.hasNext()) {
 				List<Record> records = result.list();
 				for (Record recordItem : records) {
@@ -110,7 +112,7 @@ public class Neo4jUtil {
 	public List<HashMap<String, Object>> GetGraphRelationShip(String cypherSql) {
 		List<HashMap<String, Object>> ents = new ArrayList<HashMap<String, Object>>();
 		try {
-			StatementResult result = excuteCypherSql(cypherSql);
+			Result result = excuteCypherSql(cypherSql);
 			if (result.hasNext()) {
 				List<Record> records = result.list();
 				for (Record recordItem : records) {
@@ -146,7 +148,7 @@ public class Neo4jUtil {
 		List<String> nodeids = new ArrayList<String>();
 		List<String> shipids = new ArrayList<String>();
 		try {
-			StatementResult result = excuteCypherSql(cypherSql);
+			Result result = excuteCypherSql(cypherSql);
 			if (result.hasNext()) {
 				List<Record> records = result.list();
 				for (Record recordItem : records) {
@@ -199,7 +201,7 @@ public class Neo4jUtil {
 	public long GetGraphValue(String cypherSql) {
 		long val=0;
 		try {
-			StatementResult cypherResult = excuteCypherSql(cypherSql);
+			Result cypherResult = excuteCypherSql(cypherSql);
 			if (cypherResult.hasNext()) {
 				Record record = cypherResult.next();
 				for (Value value : record.values()) {
@@ -215,7 +217,14 @@ public class Neo4jUtil {
 	public HashMap<String, Object> GetGraphNodeAndShip(String cypherSql) {
 		HashMap<String, Object> mo = new HashMap<String, Object>();
 		try {
-			StatementResult result = excuteCypherSql(cypherSql);
+//			Result result = excuteCypherSql(cypherSql);
+//			Record record = result.next();
+//			String name = record.get(0).asString();
+			Result result = null;
+			Session session = neo4jDriver.session();
+			System.out.println(cypherSql);
+			result = session.run(cypherSql);
+
 			if (result.hasNext()) {
 				List<Record> records = result.list();
 				List<HashMap<String, Object>> ents = new ArrayList<HashMap<String, Object>>();
@@ -374,6 +383,7 @@ public class Neo4jUtil {
 				mo.put("node", ents);
 				mo.put("relationship", ships);
 			}
+			session.close();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -389,7 +399,7 @@ public class Neo4jUtil {
 	public List<HashMap<String, Object>> GetEntityList(String cypherSql) {
 		List<HashMap<String, Object>> ents = new ArrayList<HashMap<String, Object>>();
 		try {
-			StatementResult result = excuteCypherSql(cypherSql);
+			Result result = excuteCypherSql(cypherSql);
 			if (result.hasNext()) {
 				List<Record> records = result.list();
 				for (Record recordItem : records) {
@@ -442,7 +452,7 @@ public class Neo4jUtil {
 	public <T> T GetEntityItem(String cypherSql, Class<T> type) {
 		HashMap<String, Object> rss = new HashMap<String, Object>();
 		try {
-			StatementResult result = excuteCypherSql(cypherSql);
+			Result result = excuteCypherSql(cypherSql);
 			if (result.hasNext()) {
 				Record record = result.next();
 				for (Value value : record.values()) {
@@ -474,7 +484,7 @@ public class Neo4jUtil {
 	public HashMap<String, Object> GetEntity(String cypherSql) {
 		HashMap<String, Object> rss = new HashMap<String, Object>();
 		try {
-			StatementResult result = excuteCypherSql(cypherSql);
+			Result result = excuteCypherSql(cypherSql);
 			if (result.hasNext()) {
 				Record record = result.next();
 				for (Value value : record.values()) {
@@ -506,7 +516,7 @@ public class Neo4jUtil {
 	public Integer executeScalar(String cypherSql) {
 		Integer count = 0;
 		try {
-			StatementResult result = excuteCypherSql(cypherSql);
+			Result result = excuteCypherSql(cypherSql);
 			if (result.hasNext()) {
 				Record record = result.next();
 				for (Value value : record.values()) {
@@ -527,7 +537,7 @@ public class Neo4jUtil {
 	public HashMap<String, Object> GetRelevantEntity(String cypherSql) {
 		HashMap<String, Object> rss = new HashMap<String, Object>();
 		try {
-			StatementResult resultNode = excuteCypherSql(cypherSql);
+			Result resultNode = excuteCypherSql(cypherSql);
 			if (resultNode.hasNext()) {
 				List<Record> records = resultNode.list();
 				for (Record recordItem : records) {
